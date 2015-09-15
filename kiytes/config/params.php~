@@ -1,0 +1,10 @@
+<?php
+
+return [
+    'adminEmail'        => 'admin@example.com',
+    
+    'twilioAccountSid'  => 'AC1a2289771f5b5698e2b41f96ac54f7d3',
+    'twilioAuthToken'   => '63b843f59bbfe4b10ccd247533b50179',
+    'twilioNumber'   => '+16102858813', // +XXXXXXXXXXX | XXX-XXX-XXXX"
+    
+];
