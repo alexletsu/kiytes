@@ -10,7 +10,7 @@ $config = [
     'bootstrap' => ['log'],
     
     'defaultRoute' => 'site/home',
-    'homeUrl' => 'http://localhost/kytes/web/', 
+    'homeUrl' => 'http://localhost/', 
     'components' => [
         'urlManager' => [               
             'showScriptName' => false,   // Disable index.php
@@ -59,7 +59,7 @@ $config = [
     'params' => $params,
 ];
 
-if (YII_ENV_DEV) {
+if (false && YII_ENV_DEV) {
     // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug'] = [

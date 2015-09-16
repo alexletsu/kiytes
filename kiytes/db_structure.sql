@@ -81,3 +81,12 @@ CREATE TABLE `rides` (
 
     `created_at`        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+# DROP TABLE `rates`;
+CREATE TABLE `rates` (
+    `id`               INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `rater_id`         INT NOT NULL REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION, 
+    `rated_id`         INT NOT NULL REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    `rate`             FLOAT(3,2) NOT NULL,
+    UNIQUE KEY `rate_unique` (`rater_id`, `rated_id`)
+);

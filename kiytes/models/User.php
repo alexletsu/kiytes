@@ -5,6 +5,8 @@ namespace app\models;
 use app\models\RelUserAddress;
 use app\models\Car;
 
+use yii\db\Query;
+
 class User extends \yii\db\ActiveRecord
 {
     public static $_TYPE_CUSTOMER = 0;
@@ -190,5 +192,19 @@ class User extends \yii\db\ActiveRecord
         }
         
         return true;
+    }
+    
+    public function getRate() {
+        $res = null;
+        if ( !$this->isNewRecord ) {
+            $query = new Query;
+            $query->select('avg(r.rate) as rate')
+                    ->from('rates r')
+                    ->groupBy('r.rated_id')
+                    ->where('r.rated_id = :uid', [':uid'=>$this->id])
+                    ->limit(1);
+            $res = $query->one();
+        }
+        return ( $res ? sprintf("%.2f", $res['rate']) : null );
     }
 }

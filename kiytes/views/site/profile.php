@@ -12,9 +12,11 @@ use yii\helpers\Url;
 $this->title = 'Kytes | Web Application';
 ?>
     <link rel="stylesheet" href="<?= Yii::$app->homeUrl; ?>css/jquery-ui-1.11.4.min.css" type="text/css" />
+    <link rel="stylesheet" href="<?= Yii::$app->homeUrl; ?>css/jquery.raty.css" type="text/css" />    
     
     <script src="<?= Yii::$app->homeUrl; ?>js/jquery-1.11.3.min.js" type="text/javascript"></script>
     <script src="<?= Yii::$app->homeUrl; ?>js/jquery-ui-1.11.4.min.js" type="text/javascript"></script>
+    <script src="<?= Yii::$app->homeUrl; ?>js/jquery.raty.js" type="text/javascript"></script>
     
     <?php if ( !$model->isExists ) { ?>
                     <header class="panel-heading text-center">
@@ -25,12 +27,21 @@ $this->title = 'Kytes | Web Application';
             <header class="panel-heading text-center">
                 <strong>Profile : <?= (User::$_TYPE_CUSTOMER == $model->userType ? "CUSTOMER" : "DRIVER") ?> <span class="label <?= ($model->isComplete ? "label-success" : "label-danger" )?>" style="margin-left:20px"><?= ($model->isComplete ? "complete" : "incomplete") ?></span></strong>
             </header>
-
             <div class="panel-body wrapper-lg">
                 <div class="form-group" style="text-align: center;">
                     <img class="profile-photo" src="<?= Yii::$app->homeUrl . "uploads/" . ('' != $model->photo ? $model->photo : 'noavatar.png') ?>" alt="Avatar"/>
                 </div>
                 
+                <div class="row form-group">
+                    <div class="col-sm-4">Rate</div>
+                    <div class="col-sm-4">
+                        <div class="rating-system"<?= ($model->rate ? " data-score=\"{$model->rate}\"" : '') ?>></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="label label-info"><?= ($model->rate ? $model->rate : '') ?></span>
+                    </div>
+                </div>
+
                 <div class="row form-group">
                     <div class="col-sm-4">First name</div>
                     <div class="col-sm-4">
@@ -135,6 +146,22 @@ $this->title = 'Kytes | Web Application';
                 <?php } ?>
             </div>
         </div>
+        <script type="text/javascript">
+            $("div.rating-system").raty({
+                path: "<?= Yii::$app->homeUrl ?>",
+                noRatedMsg : "Not rated yet",
+                number: 5,
+                readOnly: function() {
+                    return true;
+                },
+                score: function() {
+                    return $(this).attr('data-score');
+                },
+                click: function(score, evt) {
+                    //console.log('rate click, ID: ', this.id, "\nscore: ", score, "\nevent: ", evt);
+                }
+            });
+        </script>
     <?php } else { ?>
         <?php $form = ActiveForm::begin([
             'id' => 'profile-form',

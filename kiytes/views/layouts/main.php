@@ -9,6 +9,7 @@ use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
 
 use app\assets\AppAsset;
+use app\models\User;
 
 AppAsset::register($this);
 ?>
@@ -35,8 +36,14 @@ AppAsset::register($this);
         ],
     ]);
     $items = [
-            ['label' => 'Home', 'url' => ['site/home']]
+            ['label' => 'Home', 'url' => ['site/home']],            
         ];
+    
+    $_currUser = ( Yii::$app->user->isGuest ? null : User::findOne(['id' => Yii::$app->user->id]) );
+    if ( !$_currUser || (User::$_TYPE_CUSTOMER === $_currUser->user_type) ) {
+        $items[] = ['label' => 'Drivers', 'url' => ['site/drivers']];
+    }
+
     if ( Yii::$app->user->isGuest ) {
         $items[] = ['label' => 'Sign In', 'url' => ['/site/login']];
         $items[] = ['label' => 'Sign Up', 'url' => ['/site/signup']];

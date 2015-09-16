@@ -48,6 +48,8 @@ class ProfileForm extends Model
     public $carYear;
     public $licensePlateNumber;
     
+    public $rate;
+    
     public $createdAt;
 
     private $_user = null;
@@ -95,6 +97,8 @@ class ProfileForm extends Model
 
             $this->address = "";
             $this->priceMile = "";
+            
+            $this->rate = $this->_user->getRate();
             
             if ( User::$_TYPE_CUSTOMER === $this->_user->user_type) {
                 $this->priceMile = "";

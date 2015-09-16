@@ -10,4 +10,3 @@ return [
     
     'charset' => 'utf8',
 ];
-
