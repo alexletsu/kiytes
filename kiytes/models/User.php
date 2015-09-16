@@ -4,6 +4,7 @@ namespace app\models;
 
 use app\models\RelUserAddress;
 use app\models\Car;
+use app\models\Rate;
 
 use yii\db\Query;
 
@@ -206,5 +207,45 @@ class User extends \yii\db\ActiveRecord
             $res = $query->one();
         }
         return ( $res ? sprintf("%.2f", $res['rate']) : null );
+    }
+    
+    public function isRatedBy($user_id) {
+        $rater = User::findOne(['id' => $user_id]);
+        
+        if ( $rater ) {
+            $rate = Rate::findOne([
+                'rated_id' => $this->id,
+                'rater_id' => intval($user_id),
+            ]);
+
+            if ( $rate ) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public function rateByUser($user_id, $rate_score) {
+        $rater = User::findOne(['id' => $user_id]);
+        
+        if ( $rater ) {
+            $rate = Rate::findOne([
+                'rated_id' => $this->id,
+                'rater_id' => intval($user_id),
+            ]);
+            $rate_score = floatval($rate_score);
+            if ( !$rate && !$this->isNewRecord && (0 < $rate_score) && (5 >= $rate_score) ) {
+                $rate = new Rate;
+
+                $rate->rated_id = $this->id;
+                $rate->rater_id = $rater->id;
+                $rate->rate = $rate_score;
+                
+                $rate->save();
+            }
+        }
+        
+        return false;
     }
 }

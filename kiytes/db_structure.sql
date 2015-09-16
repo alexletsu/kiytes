@@ -1,8 +1,8 @@
-# DROP DATABASE `kytes`;
-CREATE DATABASE `kytes` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
+# DROP DATABASE `kiytes`;
+CREATE DATABASE `kiytes` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;
 
-# CREATE USER 'kytesuser'@'localhost' IDENTIFIED BY 'kyp(XN&QP(W*&NXanyxwouiynex';
-# GRANT ALL PRIVILEGES ON kytes.* TO 'kytesuser'@'localhost' WITH GRANT OPTION;
+# CREATE USER 'kiytesuser'@'localhost' IDENTIFIED BY 'kyp(XN&QP(W*&NXanyxwouiynex';
+# GRANT ALL PRIVILEGES ON kiytes.* TO 'kiytesuser'@'localhost' WITH GRANT OPTION;
 
 # DROP TABLE `addresses`;
 CREATE TABLE `addresses` (
@@ -20,6 +20,7 @@ CREATE TABLE `rel_user_address` (
 # DROP TABLE `users`;
 CREATE TABLE `users` (
     `id`                INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `is_admin`          TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
 
     `user_type`         TINYINT(1) UNSIGNED DEFAULT 0 COMMENT '0 - customer, 1 - driver',
 
@@ -75,7 +76,7 @@ CREATE TABLE `rides` (
 
     `ride_token`        VARCHAR(200) UNIQUE,
 
-    `time_start`        TIMESTAMP DEFAULT 0,
+    `time_start`        INT UNSIGNED NOT NULL,
     `address_start`     INT NOT NULL REFERENCES `addresses` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION, 
     `address_end`       INT NOT NULL REFERENCES `addresses` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION, 
 

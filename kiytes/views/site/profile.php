@@ -9,7 +9,7 @@ use yii\bootstrap\ActiveForm;
 use app\models\User;
 use yii\helpers\Url;
 
-$this->title = 'Kytes | Web Application';
+$this->title = 'Kiytes | Web Application';
 ?>
     <link rel="stylesheet" href="<?= Yii::$app->homeUrl; ?>css/jquery-ui-1.11.4.min.css" type="text/css" />
     <link rel="stylesheet" href="<?= Yii::$app->homeUrl; ?>css/jquery.raty.css" type="text/css" />    

@@ -1,179 +1,516 @@
 <?php
 
-/* @var $this yii\web\View */
-/* @var $form yii\bootstrap\ActiveForm */
-/* @var $model app\models\LoginForm */
+    /* @var $this yii\web\View */
+    /* @var $form yii\bootstrap\ActiveForm */
+    /* @var $model app\models\LoginForm */
 
-use yii\helpers\Url;
+    use yii\helpers\Url;
+    
+    use app\models\User;
+    use app\models\Address;
+    use app\models\Ride;
 
-$this->title = 'Kytes | Web Application';
+    $this->title = 'Kiytes | Web Application';
+    //Yii::$app->session->setFlash('ride_error', 'ride error');
 ?>
-    <link rel="stylesheet" href="<?= Yii::$app->homeUrl; ?>css/jquery-ui-1.11.4.min.css" type="text/css" />
-    <link rel="stylesheet" href="<?= Yii::$app->homeUrl; ?>css/bootstrap-datetimepicker.min.css" type="text/css" />
-    
-    <script src="<?= Yii::$app->homeUrl; ?>js/jquery-1.11.3.min.js" type="text/javascript"></script>
-    <script src="<?= Yii::$app->homeUrl; ?>js/jquery-ui-1.11.4.min.js" type="text/javascript"></script>
-    
-    <script src="<?= Yii::$app->homeUrl; ?>js/bootstrap.js" type="text/javascript"></script>
-    <script src="<?= Yii::$app->homeUrl; ?>js/moment-with-locales.min.js" type="text/javascript"></script>
-    <script src="<?= Yii::$app->homeUrl; ?>js/bootstrap-datetimepicker.js" type="text/javascript"></script>
-    
+    <link rel="stylesheet" href="<?= Yii::$app->homeUrl; ?>css/jquery.raty.css" type="text/css" />    
+    <script src="<?= Yii::$app->homeUrl; ?>js/jquery.raty.js" type="text/javascript"></script>
     
     <header class="panel-heading text-center">
         <div class="row">
             <strong>Rides</strong>
+            <?= ($context['is_admin'] ? "<br><div class=\"label label-success\">(admin mode, rides for user " . $context['user_email'] . ")</div>" : "") ?>
         </div>
     </header>
     <div class="panel-body wrapper-lg">
-        <?php if ( Yii::$app->session->hasFlash('invite_error') ) { ?>
+        <?php if ( Yii::$app->session->hasFlash('ride_error') ) { ?>
             <div class="row form-group">
                 <div class="col-sm-12 alert alert-danger text-center">
-                    <?= Yii::$app->session->getFlash('invite_error')[0] ?>
+                    <?= Yii::$app->session->getFlash('ride_error') ?>
                 </div>
             </div>
         <?php } ?>
-        <div class="row form-group">
-            <div class="col-sm-1">
-                Driver
+        
+        <!-- <rides pending> --> 
+        <?php if ( $ridesPending && ( 0 < count($ridesPending)) ) {  ?>
+            <div class="row form-group" style="margin-top:30px;">
+                <div class="col-lg-3">
+                    <div class="label label-success">Pending Rides</div>
+                </div>
             </div>
-            <?php if ( $context['driver']) { ?>
-                <div class="col-sm-2">
-                    <div class="row" style="margin-top:10px;">
-                        <div class="col text-center">
-                            <a class="label label-default" href="<?= Url::toRoute("site/profile") . "/{$context['driver']->id}"?>"><?= "{$context['driver']->first_name} {$context['driver']->last_name}" ?></a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col text-center">
-                            <a href="<?= Url::toRoute("site/profile") . "/{$context['driver']->id}"?>">
-                                <img class="profile-photo" src="<?= Yii::$app->homeUrl . "/uploads/{$context['driver']->photo}"?>" alt="Driver Avatar">
+            <div class="rides-block">
+            <?php foreach($ridesPending as $ind => $pendingRide) { ?>
+                <div class="line line-dashed"></div>
+                <?php if ( User::$_TYPE_CUSTOMER === $context['user_type']) { ?>
+                    <?php 
+                        $_driver = User::findOne(['id' => $pendingRide->driver_id]);
+                        $_startAddress = Address::findOne(['id'=>$pendingRide->address_start]);
+                        $_endAddress = Address::findOne(['id'=>$pendingRide->address_end]);
+                        
+                        $_dtStart = new \DateTime();
+                        $_dtStart->setTimestamp( $pendingRide->time_start );
+                    ?>
+                    <div class="row form-group">
+                        <div class="col-lg-3"></div>
+                        <div class="col-sm-2">
+                            <a href="<?= Url::toRoute('site/profile') . "/{$_driver->id}" ?>">
+                                <img class="profile-photo" src="<?= Yii::$app->homeUrl . "uploads/" . ($_driver->photo ? $_driver->photo : "noavatar.png") ?>" alt="Driver Avatar">
                             </a>
                         </div>
-                    </div>
-                    <div class="row" style="margin-top:10px;">
-                        <div class="col text-center">
-                            <a class="label label-info choose_driver" href="#">Choose Another Driver</a>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-3">Driver Rating</div>
+                                <div class="col-sm-4">
+                                    <div class="rating-system" data-score="<?= $_driver->getRate() ?>"></div>
+                                </div>
+                                <div class="col-sm-2">Start At</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-info"><?= $_dtStart->format("d/m/Y H:i") ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= ('0.00' !== $_driver->getRate() ? $_driver->getRate() : '') ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">From</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= $_startAddress->address ?></span>
+                                </div>
+                                <div class="col-sm-2">Status</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-info">Pending</span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">To</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= $_endAddress->address ?></span>
+                                </div>
+                            </div>
+                            <?php if ($pendingRide->message) { ?>
+                                <div class="row form-group">
+                                    <div class="col-sm-3">Message</div>
+                                    <div class="col-sm-4">
+                                        <span class="label label-info"><?= $pendingRide->message ?></span>
+                                    </div>
+                                </div>
+                            <?php } ?>
                         </div>
                     </div>
-                </div>
-            <?php } else { ?>
-                <div class="col-sm-2 text-left">
-                    <a class="label label-info choose_driver" href="#">Choose Driver</a>
-                </div>
-            <?php } ?>
-            
-            <div class="col-sm-9">
-                <div class="row form-group">
-                    <div class="col-sm-3"></div>
-                    <div class="col-sm-3" style="margin-top: 9px;">
-                        From
+                <?php } else { ?>
+                    <?php 
+                        $_client = User::findOne(['id' => $pendingRide->client_id]);
+                        $_startAddress = Address::findOne(['id'=>$pendingRide->address_start]);
+                        $_endAddress = Address::findOne(['id'=>$pendingRide->address_end]);
+                        
+                        $_dtStart = new \DateTime();
+                        $_dtStart->setTimestamp( $pendingRide->time_start );
+                    ?>
+                    <div class="row form-group">
+                        <div class="col-lg-2"></div>
+                        <div class="col-sm-2">
+                            <a href="<?= Url::toRoute('site/profile') . "/{$_client->id}" ?>">
+                                <img class="profile-photo" src="<?= Yii::$app->homeUrl . "uploads/" . ($_client->photo ? $_client->photo : "noavatar.png") ?>" alt="Customer Avatar">
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-3">Client Rating</div>
+                                <div class="col-sm-4">
+                                    <div class="rating-system" data-score="<?= $_client->getRate() ?>"></div>
+                                </div>
+                                <div class="col-sm-2">Start At</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-info"><?= $_dtStart->format("d/m/Y H:i") ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= ('0.00' !== $_client->getRate() ? $_client->getRate() : '') ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">From</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= $_startAddress->address ?></span>
+                                </div>
+                                <div class="col-sm-2">Status</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-info">Pending</span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">To</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= $_endAddress->address ?></span>
+                                </div>
+                                <?php if (!$context['is_admin']) { ?>
+                                    <div class="col-sm-2">
+                                        <a class="label label-success" href="<?= Url::toRoute(['site/rides', 'ride_id' => $pendingRide->id, 'action' => 'accept']) ?>">Accept</a>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <a class="label label-danger" href="<?= Url::toRoute(['site/rides', 'ride_id' => $pendingRide->id, 'action' => 'decline']) ?>">Decline</a>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                            <?php if ($pendingRide->message) { ?>
+                                <div class="row form-group">
+                                    <div class="col-sm-3">Message</div>
+                                    <div class="col-sm-4">
+                                        <span class="label label-info"><?= $pendingRide->message ?></span>
+                                    </div>
+                                </div>
+                            <?php } ?>
+                        </div>
                     </div>
-                    <div class="col-sm-6">
-                        <select id="from_address" class="form-control address-selector"></select>
-                    </div>
-                </div>
-                <div class="row form-group">
-                    <div class="col-sm-3"></div>
-                    <div class="col-sm-3" style="margin-top: 9px;">
-                        To
-                    </div>
-                    <div class="col-sm-6">
-                        <select id="to_address" class="form-control address-selector"></select>
-                    </div>
-                </div>
-                <div class="row form-group">
-                    <div class="col-sm-3"></div>
-                    <div class="col-sm-3" style="margin-top: 9px;">
-                        Ride Date And Time
-                    </div>
-                    <div class="col-sm-6">
-                        <input type="text" id="time_start" class="form-control"/>
-                    </div>
-                </div>
-                <?php if ( $context['customer'] ) { ?>
-                <div class="row form-group">
-                    <div class="col-sm-3"></div>
-                    <div class="col-sm-3"></div>
-                    <div class="col-sm-6 text-right">
-                        <a id="send_invite" class="btn btn-primary" href="#">Send Invite</a>
-                    </div>
-                </div>
                 <?php } ?>
+            <?php } ?>
             </div>
-        </div>
+        <?php } ?>
+        <!-- </rides pending> --> 
+        
+        <!-- <rides active> --> 
+        <?php if ( $ridesActive && ( 0 < count($ridesActive)) ) {  ?>
+            <div class="row form-group" style="margin-top:30px;">
+                <div class="col-lg-3">
+                    <div class="label label-success">Active Rides</div>
+                </div>
+            </div>
+            <div class="rides-block">
+            <?php foreach($ridesActive as $ind => $activeRide) { ?>
+                <?php if ( User::$_TYPE_CUSTOMER === $context['user_type']) { ?>
+                    <?php 
+                        $_driver = User::findOne(['id' => $activeRide->driver_id]);
+                        $_startAddress = Address::findOne(['id' => $activeRide->address_start]);
+                        $_endAddress = Address::findOne(['id' => $activeRide->address_end]);
+                        
+                        $_dtStart = new \DateTime();
+                        $_dtStart->setTimestamp( $activeRide->time_start );
+                    ?>
+                    <div class="line line-dashed"></div>
+                    <div class="row form-group">
+                        <div class="col-lg-3"></div>
+                        <div class="col-sm-2">
+                            <a href="<?= Url::toRoute('site/profile') . "/{$_driver->id}" ?>">
+                                <img class="profile-photo" src="<?= Yii::$app->homeUrl . "uploads/" . ($_driver->photo ? $_driver->photo : "noavatar.png") ?>" alt="Driver Avatar">
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-3">Driver Rating</div>
+                                <div class="col-sm-4">
+                                    <div class="rating-system" data-score="<?= $_driver->getRate() ?>"></div>
+                                </div>
+                                <div class="col-sm-2">Start At</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-info"><?= $_dtStart->format("d/m/Y H:i") ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= ('0.00' !== $_driver->getRate() ? $_driver->getRate() : '') ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">From</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= $_startAddress->address ?></span>
+                                </div>
+                                <div class="col-sm-2">Status</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-success">Accepted</span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">To</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= $_endAddress->address ?></span>
+                                </div>
+                                <?php if (!$context['is_admin']) { ?>
+                                    <div class="col-sm-4">
+                                        <a class="label label-success" href="<?= Url::toRoute(['site/rides', 'ride_id' => $activeRide->id, 'action' => 'markComplete']) ?>">Mark Ride As Complete</a>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                            <?php if ($activeRide->message) { ?>
+                                <div class="row form-group">
+                                    <div class="col-sm-3">Message</div>
+                                    <div class="col-sm-4">
+                                        <span class="label label-info"><?= $activeRide->message ?></span>
+                                    </div>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } else { ?>
+                    <?php 
+                        $_client = User::findOne(['id' => $activeRide->client_id]);
+                        $_startAddress = Address::findOne(['id' => $activeRide->address_start]);
+                        $_endAddress = Address::findOne(['id' => $activeRide->address_end]);
+                        
+                        $_dtStart = new \DateTime();
+                        $_dtStart->setTimestamp( $activeRide->time_start );
+                    ?>
+                    <div class="line line-dashed"></div>
+                    <div class="row form-group">
+                        <div class="col-lg-3"></div>
+                        <div class="col-sm-2">
+                            <a href="<?= Url::toRoute('site/profile') . "/{$_client->id}" ?>">
+                                <img class="profile-photo" src="<?= Yii::$app->homeUrl . "uploads/" . ($_client->photo ? $_client->photo : "noavatar.png") ?>" alt="Customer Avatar">
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-3">Client Rating</div>
+                                <div class="col-sm-4">
+                                    <div class="rating-system" data-score="<?= $_client->getRate() ?>"></div>
+                                </div>
+                                <div class="col-sm-2">Start At</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-info"><?= $_dtStart->format("d/m/Y H:i") ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= ('0.00' !== $_client->getRate() ? $_client->getRate() : '') ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">From</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= $_startAddress->address ?></span>
+                                </div>
+                                <div class="col-sm-2">Status</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-success">Accepted</span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">To</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= $_endAddress->address ?></span>
+                                </div>
+                            </div>
+                            <?php if ($activeRide->message) { ?>
+                                <div class="row form-group">
+                                    <div class="col-sm-3">Message</div>
+                                    <div class="col-sm-4">
+                                        <span class="label label-info"><?= $activeRide->message ?></span>
+                                    </div>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+            <?php } ?>
+            </div>
+        <?php } ?>
+        <!-- </rides active> --> 
+        
+        <!-- <rides history> --> 
+        <?php if ( $ridesHistory && ( 0 < count($ridesHistory)) ) {  ?>
+            <div class="row form-group" style="margin-top:30px;">
+                <div class="col-lg-3">
+                    <div class="label label-default">Rides History</div>
+                </div>
+            </div>
+            <div class="rides-block">
+            <?php foreach($ridesHistory as $ind => $rideHistory) { ?>
+                <?php if ( User::$_TYPE_CUSTOMER === $context['user_type']) { ?>
+                    <?php 
+                        $_driver = User::findOne(['id' => $rideHistory->driver_id]);
+                        $_startAddress = Address::findOne(['id' => $rideHistory->address_start]);
+                        $_endAddress = Address::findOne(['id' => $rideHistory->address_end]);
+                        
+                        $_dtStart = new \DateTime();
+                        $_dtStart->setTimestamp( $rideHistory->time_start );
+                    ?>
+                    <div class="line line-dashed"></div>
+                    <div class="row form-group">
+                        <div class="col-lg-3"></div>
+                        <div class="col-sm-2">
+                            <a href="<?= Url::toRoute('site/profile') . "/{$_driver->id}" ?>">
+                                <img class="profile-photo" src="<?= Yii::$app->homeUrl . "uploads/" . ($_driver->photo ? $_driver->photo : "noavatar.png") ?>" alt="Driver Avatar">
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-3">Driver Rating</div>
+                                <div class="col-sm-4">
+                                    <div class="rating-system" data-score="<?= $_driver->getRate() ?>"></div>
+                                </div>
+                                <div class="col-sm-2">Started At</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-default"><?= $_dtStart->format("d/m/Y H:i") ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-4">
+                                    <span class="label label-default"><?= ('0.00' !== $_driver->getRate() ? $_driver->getRate() : '') ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">From</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-default"><?= $_startAddress->address ?></span>
+                                </div>
+                                <div class="col-sm-2">Status</div>
+                                <div class="col-sm-3">
+                                    <?php if ( Ride::$_STATUS_COMPLETE === $rideHistory->status ) { ?>
+                                        <span class="label label-success">Complete</span>
+                                    <?php } elseif ( Ride::$_STATUS_DECLINED === $rideHistory->status ) { ?>
+                                        <span class="label label-danger">Declined</span>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">To</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-default"><?= $_endAddress->address ?></span>
+                                </div>
+                                <?php if ( !$context['is_admin'] && (Ride::$_STATUS_COMPLETE === $rideHistory->status) && !$_driver->isRatedBy($context['user_id'])) { ?>
+                                    <div class="col-sm-2">
+                                        <a class="label label-default ride-complete" data-ride="<?= $rideHistory->id ?>" href="#">Rate Driver</a>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="rating-system ride-complete" data-ride="<?= $rideHistory->id ?>"></div>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                            <?php if ($rideHistory->message) { ?>
+                                <div class="row form-group">
+                                    <div class="col-sm-3">Message</div>
+                                    <div class="col-sm-4">
+                                        <span class="label label-default"><?= $rideHistory->message ?></span>
+                                    </div>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } else { ?>
+                    <?php 
+                        $_client = User::findOne(['id' => $rideHistory->client_id]);
+                        $_startAddress = Address::findOne(['id' => $rideHistory->address_start]);
+                        $_endAddress = Address::findOne(['id' => $rideHistory->address_end]);
+                        
+                        $_dtStart = new \DateTime();
+                        $_dtStart->setTimestamp( $rideHistory->time_start );
+                    ?>
+                    <div class="line line-dashed"></div>
+                    <div class="row form-group">
+                        <div class="col-lg-3"></div>
+                        <div class="col-sm-2">
+                            <a href="<?= Url::toRoute('site/profile') . "/{$_client->id}" ?>">
+                                <img class="profile-photo" src="<?= Yii::$app->homeUrl . "uploads/" . ($_client->photo ? $_client->photo : "noavatar.png") ?>" alt="Customer Avatar">
+                            </a>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-3">Client Rating</div>
+                                <div class="col-sm-4">
+                                    <div class="rating-system" data-score="<?= $_client->getRate() ?>"></div>
+                                </div>
+                                <div class="col-sm-2">Started At</div>
+                                <div class="col-sm-3">
+                                    <span class="label label-default"><?= $_dtStart->format("d/m/Y H:i") ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-4">
+                                    <span class="label label-info"><?= ('0.00' !== $_client->getRate() ? $_client->getRate() : '') ?></span>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">From</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-default"><?= $_startAddress->address ?></span>
+                                </div>
+                                <div class="col-sm-2">Status</div>
+                                <div class="col-sm-3">
+                                    <?php if ( Ride::$_STATUS_COMPLETE === $rideHistory->status ) { ?>
+                                        <span class="label label-success">Complete</span>
+                                    <?php } elseif ( Ride::$_STATUS_DECLINED === $rideHistory->status ) { ?>
+                                        <span class="label label-danger">Declined</span>
+                                    <?php } ?>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-sm-3">To</div>
+                                <div class="col-sm-4">
+                                    <span class="label label-default"><?= $_endAddress->address ?></span>
+                                </div>
+                                <?php if ( !$context['is_admin'] && (Ride::$_STATUS_COMPLETE === $rideHistory->status) && !$_client->isRatedBy($context['user_id'])) { ?>
+                                    <div class="col-sm-2">
+                                        <a class="label label-default ride-complete" data-ride="<?= $rideHistory->id ?>" href="#">Rate Client</a>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="rating-system ride-complete" data-ride="<?= $rideHistory->id ?>"></div>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                            <?php if ($rideHistory->message) { ?>
+                                <div class="row form-group">
+                                    <div class="col-sm-3">Message</div>
+                                    <div class="col-sm-4">
+                                        <span class="label label-default"><?= $rideHistory->message ?></span>
+                                    </div>
+                                </div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                <?php } ?>
+            <?php } ?>
+            </div>
+        <?php } ?>
+        <!-- </rides history> -->
     </div>
     
     <script type="text/javascript">
-        var addresses = <?= $context['addresses'] ?>;
-        
         $(document).ready(function(){
-            for( var ind in addresses ) {
-                $('#from_address').append("<option id='" + ind + "'>" + addresses[ind] + "</option>");
-                $('#to_address').append("<option id='" + ind + "'>" + addresses[ind] + "</option>");
-            }
-            
-            <?php if ( $context['address_start']) { ?>
-                    $('#from_address option[id=<?=$context['address_start']?>]').prop('selected', true);
-            <?php } ?>
-            <?php if ( $context['address_dest']) { ?>
-                $('#to_address option[id=<?=$context['address_dest']?>]').prop('selected', true);
-            <?php } ?>
-            
-            var dt_start = new moment();
-            <?php if ( $context['time_start']) { ?>
-                dt_start = moment(unescape("<?= $context['time_start'] ?>"), "DD/MM/YYYY HH:mm");
-            <?php } ?>
-            
-            dt_start.format('DD/MM/YYYY HH:mm')
-            
-            $('#time_start').datetimepicker({
-                'sideBySide' : true,
-                'useSeconds' : false,
-                'format' : "DD/MM/YYYY HH:mm",
-                'defaultDate' : dt_start,
-            }).change(function(e) {
-                /*
-                console.log('time_start change');
-                
-                console.log('date time : ', $('#time_start').data("DateTimePicker").date.format("DD/MM/YYYY HH:mm"));
-                console.log('date time unix timestamp : ', $('#time_start').data("DateTimePicker").date.format("X"));
-                console.log('date time unix ms timestamp : ', $('#time_start').data("DateTimePicker").date.format("x"));
-                */
-            });
-            
-            $('#send_invite').click(function(e){
-                e.preventDefault();
-                
-                var fromEl = document.getElementById('from_address'),
-                    toEl  = document.getElementById('to_address'),
-                    _url = "<?= Url::toRoute('site/rides') ?>?" 
-                        + "address_start=" + fromEl.options[fromEl.selectedIndex].id
-                        + "&address_dest=" + toEl.options[toEl.selectedIndex].id
-                        + "&time_start=" + escape($('#time_start').data("DateTimePicker").date.format("DD/MM/YYYY HH:mm"))
-                        + "&send_invite=1";
-                
-                <?php if ( $context['driver']) { ?>
-                    _url += '&driver=<?= $context['driver']->id ?>';
-                    location.href = _url;
-                <?php } else { ?>
-                    alert('Driver not choosen');
-                <?php } ?>
-            });
-            
             $('div.alert').fadeOut(10 * 1000);
         });
         
-        $('a.choose_driver').click(function(e) {
-            e.preventDefault();
-            var 
-                fromEl = document.getElementById('from_address'),
-                toEl  = document.getElementById('to_address'),
-                _url = "<?= Url::toRoute('site/drivers') ?>?" 
-                    + "address_start=" + fromEl.options[fromEl.selectedIndex].id
-                    + "&address_dest=" + toEl.options[toEl.selectedIndex].id
-                    + "&time_start=" + escape($('#time_start').data("DateTimePicker").date.format("DD/MM/YYYY HH:mm"));
-            
-            location.href = _url;
+        $("div.rating-system").raty({
+            path: "<?= Yii::$app->homeUrl ?>",
+            noRatedMsg : "Not rated yet",
+            number: 5,
+            readOnly: function() {
+                return !this.classList.contains('ride-complete');
+            },
+            score: function() {
+                return $(this).attr('data-score');
+            },
+            click: function(score, evt) {
+                this.dataset['score'] = score;
+                $('a.ride-complete[data-ride=' + this.dataset['ride'] + ']').addClass('label-success').removeClass('label-default');
+                //console.log('rate click, ID: ', this.id, "\nscore: ", score, "\nevent: ", evt);
+            }
         });
+        
+        $("a.ride-complete").click(function(ev){
+            ev.preventDefault();
+            
+            completeRide(this.dataset['ride']);
+        });
+        
+        function completeRide(rideId) {
+            var 
+                $rateRideEl = $('div.rating-system.ride-complete[data-ride=' + rideId + ']'),
+                _score = ( 'undefined' !== typeof($rateRideEl.data('score')) ? $rateRideEl.data('score') : null )
+                _url = "<?= Url::toRoute(['site/rides', 'action' => (User::$_TYPE_CUSTOMER === $context['user_type'] ? 'rateDriver' : 'rateClient')]) ?>&ride_id=" + rideId + (_score ? "&rate=" + _score : "");
+                
+            //console.log("completeRide, ride id : ", rideId, ", rate element : ", $rateRideEl[0], ", rate score : ", _score , ", url : ", _url);
+            if ( _score ) {
+                location.href = _url;
+            }
+        }
     </script>
     

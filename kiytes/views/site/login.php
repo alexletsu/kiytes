@@ -8,7 +8,7 @@
     use yii\bootstrap\ActiveForm;
     use yii\helpers\Url;
 
-    $this->title = 'Kytes | Web Application';
+    $this->title = 'Kiytes | Web Application';
 ?>
 
     <header class="panel-heading text-center">

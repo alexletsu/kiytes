@@ -6,17 +6,20 @@
 
     use yii\helpers\Url;
 
-    $this->title = 'Kytes | Web Application';
+    $this->title = 'Kiytes | Web Application';
     
-    $ride_get_params = [];
+    $invitation_get_params = [];
     if ( $context['address_start'] ) {
-        $ride_get_params['address_start'] = $context['address_start'];
+        $invitation_get_params['address_start'] = $context['address_start'];
     }
     if ( $context['address_dest'] ) {
-        $ride_get_params['address_dest'] = $context['address_dest'];
+        $invitation_get_params['address_dest'] = $context['address_dest'];
     }
     if ( $context['time_start'] ) {
-        $ride_get_params['time_start'] = $context['time_start'];
+        $invitation_get_params['time_start'] = $context['time_start'];
+    }
+    if ( $context['message'] ) {
+        $invitation_get_params['message'] = $context['message'];
     }
 ?>
     <link rel="stylesheet" href="<?= Yii::$app->homeUrl; ?>css/jquery-ui-1.11.4.min.css" type="text/css" />
@@ -28,7 +31,7 @@
     
     <header class="panel-heading text-center">
         <div class="row">
-            <strong>Drivers</strong>
+            <strong><?= ($context['is_drivers'] ? "Drivers" : "Users") ?></strong>
         </div>
         <div class="row">
             <div class="col-sm-4">
@@ -50,7 +53,7 @@
                 </div>
                 <div class="col-sm-4">
                     <div class="row">
-                        <div class="col-sm-4">Driver Rating</div>
+                        <div class="col-sm-4"><?= ($context['is_drivers'] ? "Driver" : "User" ) ?> Rating</div>
                         <div class="col-sm-5">
                             <div class="rating-system" data-score="<?= $driver['rating'] ?>"></div>
                         </div>
@@ -73,54 +76,72 @@
                             <span class="label label-info"><?= $driver['last_name'] ?></span>
                         </div>
                     </div>
-                    <div class="row form-group">
-                        <div class="col-sm-4">Price/Mile</div>
-                        <div class="col-sm-5">
-                            <span class="label label-info"><?= $driver['price_mile'] ?></span>
+                    <?php if ($context['is_drivers']) { ?>
+                        <div class="row form-group">
+                            <div class="col-sm-4">Price/Mile</div>
+                            <div class="col-sm-5">
+                                <span class="label label-info"><?= $driver['price_mile'] ?></span>
+                            </div>
                         </div>
-                    </div>
+                    <?php } ?>
                 </div>
-                <div class="col-sm-2">
-                    <!-- <a href="<?= Url::toRoute("site/car") . '/' . $driver['car_id'] ?>"> -->
-                        <img class="profile-car" src="<?= Yii::$app->homeUrl ?>uploads/<?= ($driver['car_photo'] ? $driver['car_photo'] : "ImageNotAvailable.png") ?>" alt="Car Photo"/>
-                    <!-- </a> -->
-                </div>
-                <div class="col-sm-4">
-                    <div class="row form-group">
-                        <div class="col-sm-4">Car Model</div>
-                        <div class="col-sm-5">
-                            <span class="label label-info"><?= $driver['model'] ?></span>
+                <?php if ($context['is_drivers']) { ?>
+                    <div class="col-sm-2">
+                        <!-- <a href="<?= Url::toRoute("site/car") . '/' . $driver['car_id'] ?>"> -->
+                            <img class="profile-car" src="<?= Yii::$app->homeUrl ?>uploads/<?= ($driver['car_photo'] ? $driver['car_photo'] : "ImageNotAvailable.png") ?>" alt="Car Photo"/>
+                        <!-- </a> -->
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="row form-group">
+                            <div class="col-sm-4">Car Model</div>
+                            <div class="col-sm-5">
+                                <span class="label label-info"><?= $driver['model'] ?></span>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-4">Car Make</div>
+                            <div class="col-sm-5">
+                                <span class="label label-info"><?= $driver['make'] ?></span>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-4">Car Year</div>
+                            <div class="col-sm-5">
+                                <span class="label label-info"><?= $driver['year'] ?></span>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-4">Plate Number</div>
+                            <div class="col-sm-5">
+                                <span class="label label-info"><?= $driver['license_plate'] ?></span>
+                            </div>
                         </div>
                     </div>
-                    <div class="row form-group">
-                        <div class="col-sm-4">Car Make</div>
-                        <div class="col-sm-5">
-                            <span class="label label-info"><?= $driver['make'] ?></span>
-                        </div>
-                    </div>
-                    <div class="row form-group">
-                        <div class="col-sm-4">Car Year</div>
-                        <div class="col-sm-5">
-                            <span class="label label-info"><?= $driver['year'] ?></span>
-                        </div>
-                    </div>
-                    <div class="row form-group">
-                        <div class="col-sm-4">Plate Number</div>
-                        <div class="col-sm-5">
-                            <span class="label label-info"><?= $driver['license_plate'] ?></span>
-                        </div>
-                    </div>
-                </div>
+                <?php } ?>
             </div>
             <?php if (false == $context['is_guest'] ) { ?>
                 <div class="row form-group">
                     <div class="col-sm-2" style="text-align:center;">
                         <?php if ($driver['is_complete']) { ?>
-                            <a class="btn btn-primary" href="<?= Url::toRoute(array_merge(["site/rides", "driver"=>$driver['id']], $ride_get_params)) ?>">Hire Driver</a>
+                            <?php if ($context['is_drivers']) { ?>
+                                <a class="btn btn-primary" href="<?= Url::toRoute(array_merge(["site/invitation", "driver"=>$driver['id']], $invitation_get_params)) ?>">Hire Driver</a>
+                            <?php } else {?>
+                                <span class="label label-success">User Profile Complete</span>
+                            <?php } ?>
                         <?php } else { ?>
-                            <span class="label label-danger">Driver Profile Incomplete</span>
+                            <span class="label label-danger"><?= ($context['is_drivers'] ? "Driver" : "User") ?> Profile Incomplete</span>
                         <?php } ?>
                     </div>
+                    <?php if ($context['is_admin']) { ?>
+                        <div class="col-sm-3" style="text-align:center;">
+                            <a class="btn btn-primary" href="<?= Url::toRoute("site/rides") . "/{$driver['id']}" ?>">Show Ride History (Admin Mode)</a>
+                        </div>
+                        <?php if (!$driver['is_admin']) { ?>
+                            <div class="col-sm-3" style="text-align:center;">
+                                <a class="btn btn-primary" href="<?= Url::toRoute([($context['is_drivers'] ? "site/drivers" : "site/users"), "user_id" => $driver['id'], "action" => "markAdmin"]) ?>">Mark As Admin (Admin Mode)</a>
+                            </div>
+                        <?php } ?>
+                    <?php } ?>
                 </div>
             <?php } ?>
         <?php } ?>
@@ -132,7 +153,7 @@
                 <?php if ( 0 < $context['current_page'] ) { ?>
                     <?php $params = ('1' < $context['current_page'] ? [ "page" => intval($context['current_page'])-1] : []); ?>
                     <?php if ($context['filtered_address']) {$params["address"] = $context['filtered_address'];} ?>
-                    <a class="label label-info" href="<?= Url::toRoute(array_merge(["site/drivers"], $params, $ride_get_params)) ?>">Previous Page</a>
+                    <a class="label label-info" href="<?= Url::toRoute(array_merge(["site/drivers"], $params, $invitation_get_params)) ?>">Previous Page</a>
                 <?php } ?>
             </div>
             <div class="col-sm-2" style="text-align:center;">
@@ -142,7 +163,7 @@
                 <?php if ( ($context['current_page']+1) < $context['total_pages'] ) { ?>
                     <?php $params = [ "page" => intval($context['current_page'])+1 ]; ?>
                     <?php if ($context['filtered_address']) {$params["address"] = $context['filtered_address'];} ?>
-                    <a class="label label-info" href="<?= Url::toRoute(array_merge(["site/drivers"], $params, $ride_get_params)) ?>">Next Page</a>
+                    <a class="label label-info" href="<?= Url::toRoute(array_merge(["site/drivers"], $params, $invitation_get_params)) ?>">Next Page</a>
                 <?php } ?>
             </div>
         </div>
@@ -172,9 +193,9 @@
             
             var address = $('#address_filter').val();
             if ( address.length > 0 ) {
-                location.href = "<?= Url::toRoute(array_merge(['site/drivers'], $ride_get_params)) . (count($ride_get_params) > 0 ? '&' : '?') ?>address=" + address;
+                location.href = "<?= Url::toRoute(array_merge(['site/drivers'], $invitation_get_params)) . (count($invitation_get_params) > 0 ? '&' : '?') ?>address=" + address;
             } else {
-                location.href = "<?= Url::toRoute(array_merge(['site/drivers'], $ride_get_params)) ?>";
+                location.href = "<?= Url::toRoute(array_merge(['site/drivers'], $invitation_get_params)) ?>";
             }
             
             return false;

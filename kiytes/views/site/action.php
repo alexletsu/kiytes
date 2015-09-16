@@ -7,7 +7,7 @@
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-$this->title = 'Kytes | Web Application';
+$this->title = 'Kiytes | Web Application';
 ?>
     
     <?php if ( !isset($content) || !isset($content['actionType']) ) { ?>
@@ -25,7 +25,12 @@ $this->title = 'Kytes | Web Application';
                 <span class="label label-info">(<?= $content['phone'] ?>)</span><br>
                 <?php if (YII_DEBUG) { ?>
                     <br><br>(DEBUG MODE) activation url : <br>
-                    <a href="<?= $content['verificationUrl'] ?>"><?= $content['verificationUrl'] ?></a>
+                    <a class="label label-info" href="<?= $content['verificationUrl'] ?>"><?= $content['verificationUrl'] ?></a>
+                    
+                    <?php if ($content['twilioException']) { ?>
+                    <br><br>(DEBUG MODE) Twilio API exception [<div class="label label-default">code <?= $content['twilioException']->getCode() ?></div>] : 
+                    <br><?= $content['twilioException']->getMessage() ?>
+                    <?php } ?>
                 <?php } ?>
             </div>
         </div>

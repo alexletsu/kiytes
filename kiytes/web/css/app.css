@@ -13,11 +13,17 @@ body {
 	margin-top:8px;
 }
 
+@font-face {
+    font-family: 'bauhaus-93';
+    src: url(fonts/bauhaus-93.ttf) format('truetype');
+}
 .navbar-brand.block.logo {
+  font-family: bauhaus-93;
   color: #ff6600;
   font-size: 40px;
   font-weight: normal;
 }
+
 .h1,
 .h2,
 .h3,
@@ -3258,4 +3264,11 @@ fieldset[disabled] .btn-gplus.active {
   .hidden-xs.show {
     display: inherit !important;
   }
+}
+
+.rides-block {
+    max-height: 370px;
+    
+    overflow-x:hidden;
+    overflow-y:auto;
 }
